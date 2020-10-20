@@ -40,7 +40,7 @@ const SYMBOL_SETS = {
 			[OPERATOR_NAMES.OR]: "∨",
 			[OPERATOR_NAMES.XOR]: "⊕",
 			[OPERATOR_NAMES.TRUE]: "⊤",
-			[OPERATOR_NAMES.FALSE]: "⊥",
+			[OPERATOR_NAMES.FALSE]: ["F", "⊥"],
 		},
 	},
 	[SYMBOL_TYPES.NUMERCAL_BOOLEAN]: {
@@ -149,6 +149,32 @@ export default class BooleanAlgebraFormula
 	{
 		return BooleanAlgebraFormula.getElementFromFormula(this.formula, SYMBOL_SETS[symbolType]);
 	}
+	createTable(symbolType = SYMBOL_TYPES.BOOLEAN_ALGEBRA)
+	{
+		let t = document.createElement("table");
+		let table = [];
+		for (let i = 0; i < 2 ** this.variables.length; i++)
+		{
+			let inputs = {};
+			for (let j = 0; j < this.variables.length; j++)
+				inputs[this.variables[j]] = (i >> (this.variables.length - 1 - j)) & 1;
+			table.push({ ...inputs, Output: this.get(inputs) });
+		}
+		table = [Object.keys(table[0]), ...table.map(row => Object.values(row).map(cell => BooleanAlgebraFormula.getSymbol(cell ? OPERATOR_NAMES.TRUE : OPERATOR_NAMES.FALSE, SYMBOL_SETS[symbolType])))];
+		console.table(table);
+		for (let row of table)
+		{
+			let tr = document.createElement("tr");
+			for (let cell of row)
+			{
+				let td = document.createElement("td");
+				td.textContent = cell;
+				tr.appendChild(td);
+			}
+			t.appendChild(tr);
+		}
+		return t;
+	}
 
 	static calculate(formulaText, inputs)
 	{
@@ -219,11 +245,16 @@ export default class BooleanAlgebraFormula
 		}
 		return elem;
 	}
+
 	static getSymbol(operator, symbolSet)
 	{
 		let symbol = symbolSet.symbols[operator];
 		if (symbol)
+		{
+			if (symbol instanceof Array)
+				return symbol[0];
 			return symbol;
+		}
 		if (symbolSet.fallback)
 			return this.getSymbol(operator, SYMBOL_SETS[symbolSet.fallback])
 		return "<NO_SYMBOL_FOUND>";

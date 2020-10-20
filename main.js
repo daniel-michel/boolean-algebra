@@ -20,17 +20,24 @@ function main()
 		update();
 	};
 	document.body.appendChild(document.createElement("br"));
-
+	
 	let element = document.createElement("input");
 	element.classList.add("formula");
 	document.body.appendChild(element);
 	element.setAttribute("type", "text");
 	element.setAttribute("spellcheck", "false");
 	element.value = "A => B EQUALS not C & D || E != F and true or false";
-	let interpretation = document.createElement("div");
 	document.body.appendChild(document.createTextNode(" is interpreted as: "));
+	document.body.appendChild(document.createElement("br"));
+	let interpretation = document.createElement("div");
 	interpretation.classList.add("formula");
 	document.body.appendChild(interpretation);
+	
+	document.body.appendChild(document.createElement("br"));
+	document.body.appendChild(document.createTextNode("Truth table:"));
+	let tableContainer = document.createElement("div");
+	document.body.appendChild(tableContainer);
+
 	let update = () =>
 	{
 		console.clear();
@@ -50,6 +57,8 @@ function main()
 			interpretation.innerHTML = "";
 			//interpretation.textContent = formula.getFormulaText(select.value);
 			interpretation.appendChild(formula.getFormulaElement(select.value));
+			tableContainer.innerHTML = "";
+			tableContainer.appendChild(formula.createTable(select.value));
 		}
 		catch (e)
 		{

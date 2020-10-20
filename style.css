@@ -48,3 +48,17 @@ select
 {
 	color: rgb(255, 81, 104);
 }
+
+table
+{
+	text-align: center;
+}
+
+table td
+{
+	/* width: 1em;
+	height: 1em; */
+	background-color: rgb(29, 29, 29);
+	padding: 0.3em 0.5em;
+	border-radius: 0.1em;
+}
