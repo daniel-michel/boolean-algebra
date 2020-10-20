@@ -161,7 +161,6 @@ export default class BooleanAlgebraFormula
 			table.push({ ...inputs, Output: this.get(inputs) });
 		}
 		table = [Object.keys(table[0]), ...table.map(row => Object.values(row).map(cell => BooleanAlgebraFormula.getSymbol(cell ? OPERATOR_NAMES.TRUE : OPERATOR_NAMES.FALSE, SYMBOL_SETS[symbolType])))];
-		console.table(table);
 		for (let row of table)
 		{
 			let tr = document.createElement("tr");
@@ -401,12 +400,81 @@ export class FormulaEditor
 	/**
 	 * 
 	 * @param {HTMLElement} element 
-	 * @param {BooleanAlgebraFormula} formula 
+	 * @param {string} formula 
 	 */
-	constructor(element, formula = new BooleanAlgebraFormula())
+	constructor(element, formula = "")
 	{
-		this.element = element;
-		this.element.setAttribute("tabIndex", "0");
-		this.formula = formula;
+		this.parentElement = element;
+		//this.element.setAttribute("tabIndex", "0");
+
+		this.element = document.createElement("div");
+		this.element.classList.add("formula-editor");
+		this.parentElement.appendChild(this.element);
+
+
+		this.element.appendChild(document.createTextNode("Display symbol type: "));
+		this.select = document.createElement("select");
+		for (let optionName in BooleanAlgebraFormula.TYPES)
+		{
+			let option = document.createElement("option");
+			option.textContent = BooleanAlgebraFormula.TYPES[optionName];
+			option.value = BooleanAlgebraFormula.TYPES[optionName];
+			this.select.appendChild(option);
+		}
+		this.element.appendChild(this.select);
+		this.select.onchange = e =>
+		{
+			this.update();
+		};
+
+		this.inputElement = document.createElement("input");
+		this.inputElement.classList.add("formula");
+		this.element.appendChild(this.inputElement);
+		this.inputElement.setAttribute("type", "text");
+		this.inputElement.setAttribute("spellcheck", "false");
+		this.inputElement.value = formula;
+		this.element.appendChild(document.createTextNode("Formula interpretation:"));
+		this.interpretation = document.createElement("div");
+		this.interpretation.classList.add("formula");
+		this.element.appendChild(this.interpretation);
+
+		this.element.appendChild(document.createTextNode("Truth table:"));
+		this.tableContainer = document.createElement("div");
+		this.element.appendChild(this.tableContainer);
+
+		this.inputElement.oninput = () =>
+		{
+			this.update();
+		};
+		this.update();
+	//editor = new FormulaEditor(element, formula);
+	}
+
+	update()
+	{
+		console.clear();
+		this.tableContainer.innerHTML = "";
+		this.interpretation.innerHTML = "";
+		try
+		{
+			let formula = new BooleanAlgebraFormula(this.inputElement.value);
+			// formula.variables.sort();
+			let table = [];
+			for (let i = 0; i < 2 ** formula.variables.length; i++)
+			{
+				let inputs = {};
+				for (let j = 0; j < formula.variables.length; j++)
+					inputs[formula.variables[j]] = (i >> (formula.variables.length - 1 - j)) & 1;
+				table.push({ ...inputs, Output: formula.get(inputs) });
+			}
+			//interpretation.textContent = formula.getFormulaText(select.value);
+			this.interpretation.appendChild(formula.getFormulaElement(this.select.value));
+			this.tableContainer.appendChild(formula.createTable(this.select.value));
+		}
+		catch (e)
+		{
+			this.interpretation.textContent = "Invalid formula";
+		}
+		//console.log(BooleanAlgebraFormula.calculate(element.value, { A: 1, B: 0, C: 1, D: 0 }));
 	}
 }
