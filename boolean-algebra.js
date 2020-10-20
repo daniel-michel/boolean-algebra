@@ -5,7 +5,6 @@ const SYMBOL_TYPES = {
 	PROGRMMING: "programming",
 	NAMES: "names",
 };
-Object.freeze(SYMBOL_TYPES);
 const OPERATOR_NAMES = {
 	BRACKET_OPEN: "bracket_open",
 	BRACKET_CLOSE: "bracket_close",
@@ -17,7 +16,6 @@ const OPERATOR_NAMES = {
 	XOR: "xor",
 	TRUE: "top",
 	FALSE: "bottom",
-	ANY: "any",
 };
 const OPERATORS = {
 	[OPERATOR_NAMES.IMPLICATION]: { precedence: 0, leftOperand: true, rightOperand: true, func: (a, b) => (a ^ 1) | b },
@@ -28,7 +26,7 @@ const OPERATORS = {
 	[OPERATOR_NAMES.XOR]: { precedence: 3, leftOperand: true, rightOperand: true, func: (a, b) => a ^ b },
 	[OPERATOR_NAMES.TRUE]: { precedence: Infinity, func: () => 1 },
 	[OPERATOR_NAMES.FALSE]: { precedence: Infinity, func: () => 0 },
-}
+};
 const SYMBOL_SETS = {
 	[SYMBOL_TYPES.BOOLEAN_ALGEBRA]: {
 		[OPERATOR_NAMES.BRACKET_OPEN]: "(",
@@ -75,7 +73,6 @@ const SYMBOL_SETS = {
 	},
 };
 const DEFAULT_SYMBOLS = SYMBOL_TYPES.BOOLEAN_ALGEBRA;
-Object.freeze(SYMBOL_SETS);
 
 function getStack()
 {
