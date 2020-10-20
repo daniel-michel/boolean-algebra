@@ -1,4 +1,4 @@
-import BooleanAlgebraFormula, { FormulaEditor } from "./boolean-algebra.js";
+import { FormulaEditor } from "./boolean-algebra.js";
 
 window.onload = main;
 function main()
