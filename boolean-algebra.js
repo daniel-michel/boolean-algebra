@@ -1,9 +1,10 @@
 
 const SYMBOL_TYPES = {
-	BOOLEAN_ALGEBRA: "boolean_algebra",
-	BOOLEAN: "boolean",
-	PROGRMMING: "programming",
-	NAMES: "names",
+	BOOLEAN_ALGEBRA: "Boolean Algebra",
+	NUMERCAL_BOOLEAN: "Numerical Boolean Algebra",
+	NAMES: "Names",
+	PROGRMMING: "Programming",
+	PYTHON: "Python",
 };
 const OPERATOR_NAMES = {
 	BRACKET_OPEN: "bracket_open",
@@ -29,47 +30,66 @@ const OPERATORS = {
 };
 const SYMBOL_SETS = {
 	[SYMBOL_TYPES.BOOLEAN_ALGEBRA]: {
-		[OPERATOR_NAMES.BRACKET_OPEN]: "(",
-		[OPERATOR_NAMES.BRACKET_CLOSE]: ")",
-		[OPERATOR_NAMES.IMPLICATION]: ["⇒", "=>"],
-		[OPERATOR_NAMES.EQUIVALENCE]: ["⇔", "<=>"],
-		[OPERATOR_NAMES.NOT]: ["¬", "-"],
-		[OPERATOR_NAMES.AND]: "∧",
-		[OPERATOR_NAMES.OR]: "∨",
-		[OPERATOR_NAMES.XOR]: "⊕",
-		[OPERATOR_NAMES.TRUE]: "⊤",
-		[OPERATOR_NAMES.FALSE]: "⊥",
-		[OPERATOR_NAMES.ANY]: "∀",
+		symbols: {
+			[OPERATOR_NAMES.BRACKET_OPEN]: "(",
+			[OPERATOR_NAMES.BRACKET_CLOSE]: ")",
+			[OPERATOR_NAMES.IMPLICATION]: ["⇒", "=>"],
+			[OPERATOR_NAMES.EQUIVALENCE]: ["⇔", "<=>"],
+			[OPERATOR_NAMES.NOT]: ["¬", "-"],
+			[OPERATOR_NAMES.AND]: "∧",
+			[OPERATOR_NAMES.OR]: "∨",
+			[OPERATOR_NAMES.XOR]: "⊕",
+			[OPERATOR_NAMES.TRUE]: "⊤",
+			[OPERATOR_NAMES.FALSE]: "⊥",
+		},
 	},
-	[SYMBOL_TYPES.BOOLEAN]: {
-		//[OPERATOR_NAMES.IMPLICATION]: ["⇒", "=>"],
-		//[OPERATOR_NAMES.EQUIVALENCE]: ["⇔", "<=>"],
-		//[OPERATOR_NAMES.NOT]: "¬",
-		[OPERATOR_NAMES.AND]: ["·", "*"],
-		[OPERATOR_NAMES.OR]: "+",
-		[OPERATOR_NAMES.XOR]: "⊕",
-		[OPERATOR_NAMES.TRUE]: "1",
-		[OPERATOR_NAMES.FALSE]: "0",
+	[SYMBOL_TYPES.NUMERCAL_BOOLEAN]: {
+		fallback: SYMBOL_TYPES.BOOLEAN_ALGEBRA,
+		symbols: {//[OPERATOR_NAMES.IMPLICATION]: ["⇒", "=>"],
+			//[OPERATOR_NAMES.EQUIVALENCE]: ["⇔", "<=>"],
+			//[OPERATOR_NAMES.NOT]: "¬",
+			[OPERATOR_NAMES.AND]: ["·", "*"],
+			[OPERATOR_NAMES.OR]: "+",
+			[OPERATOR_NAMES.XOR]: "⊕",
+			[OPERATOR_NAMES.TRUE]: "1",
+			[OPERATOR_NAMES.FALSE]: "0",
+		},
 	},
 	[SYMBOL_TYPES.PROGRMMING]: {
-		[OPERATOR_NAMES.IMPLICATION]: ">=",
-		[OPERATOR_NAMES.EQUIVALENCE]: "==",
-		[OPERATOR_NAMES.NOT]: ["!", "not"],
-		[OPERATOR_NAMES.AND]: ["&&", "&", "and"],
-		[OPERATOR_NAMES.OR]: ["||", "|", "or"],
-		[OPERATOR_NAMES.XOR]: "!=",
-		[OPERATOR_NAMES.TRUE]: ["true", "True"],
-		[OPERATOR_NAMES.FALSE]: ["false", "False"]
+		fallback: SYMBOL_TYPES.BOOLEAN_ALGEBRA,
+		symbols: {
+			[OPERATOR_NAMES.IMPLICATION]: "<=",
+			[OPERATOR_NAMES.EQUIVALENCE]: "==",
+			[OPERATOR_NAMES.NOT]: ["!", "not"],
+			[OPERATOR_NAMES.AND]: ["&&", "&", "and"],
+			[OPERATOR_NAMES.OR]: ["||", "|", "or"],
+			[OPERATOR_NAMES.XOR]: ["!=", "^"],
+			[OPERATOR_NAMES.TRUE]: "true",
+			[OPERATOR_NAMES.FALSE]: "false"
+		},
+	},
+	[SYMBOL_TYPES.PYTHON]: {
+		fallback: SYMBOL_TYPES.PROGRMMING,
+		symbols: {
+			[OPERATOR_NAMES.NOT]: "not",
+			[OPERATOR_NAMES.AND]: "and",
+			[OPERATOR_NAMES.OR]: "or",
+			[OPERATOR_NAMES.TRUE]: "True",
+			[OPERATOR_NAMES.FALSE]: "False"
+		},
 	},
 	[SYMBOL_TYPES.NAMES]: {
-		[OPERATOR_NAMES.IMPLICATION]: "IMPLICATION",
-		[OPERATOR_NAMES.EQUIVALENCE]: ["EQUAL", "EQUIVALENCE"],
-		[OPERATOR_NAMES.NOT]: "NOT",
-		[OPERATOR_NAMES.AND]: "AND",
-		[OPERATOR_NAMES.OR]: "OR",
-		[OPERATOR_NAMES.XOR]: "XOR",
-		[OPERATOR_NAMES.TRUE]: "TRUE",
-		[OPERATOR_NAMES.FALSE]: "FALSE",
+		fallback: SYMBOL_TYPES.BOOLEAN_ALGEBRA,
+		symbols: {
+			[OPERATOR_NAMES.IMPLICATION]: "IMPLIES",
+			[OPERATOR_NAMES.EQUIVALENCE]: ["EQUALS", "EQUIVALENCE"],
+			[OPERATOR_NAMES.NOT]: "NOT",
+			[OPERATOR_NAMES.AND]: "AND",
+			[OPERATOR_NAMES.OR]: "OR",
+			[OPERATOR_NAMES.XOR]: "XOR",
+			[OPERATOR_NAMES.TRUE]: ["TRUE", "ONE"],
+			[OPERATOR_NAMES.FALSE]: ["FALSE", "ZERO"],
+		},
 	},
 };
 const DEFAULT_SYMBOLS = SYMBOL_TYPES.BOOLEAN_ALGEBRA;
@@ -121,9 +141,13 @@ export default class BooleanAlgebraFormula
 		return BooleanAlgebraFormula.calculateWith(inputs, this.formula);
 	}
 
-	getFormulaText()
+	getFormulaText(symbolType = SYMBOL_TYPES.BOOLEAN_ALGEBRA)
 	{
-		return BooleanAlgebraFormula.getTextFromFormula(this.formula);
+		return BooleanAlgebraFormula.getTextFromFormula(this.formula, SYMBOL_SETS[symbolType]);
+	}
+	getFormulaElement(symbolType = SYMBOL_TYPES.BOOLEAN_ALGEBRA)
+	{
+		return BooleanAlgebraFormula.getElementFromFormula(this.formula, SYMBOL_SETS[symbolType]);
 	}
 
 	static calculate(formulaText, inputs)
@@ -147,12 +171,62 @@ export default class BooleanAlgebraFormula
 			return formula.name;
 		else if (formula.type === "operator")
 		{
-			let symbol = (symbolSet[formula.operator] ?? SYMBOL_SETS[DEFAULT_SYMBOLS][formula.operator]) ?? " <NO_SYMBOL_FOUND> ";
+			//let symbol = (symbolSet.symbols[formula.operator] ?? SYMBOL_SETS[DEFAULT_SYMBOLS][formula.operator]) ?? " <NO_SYMBOL_FOUND> ";
+			let symbol = this.getSymbol(formula.operator, symbolSet);
 			let operator = OPERATORS[formula.operator];
 			if (symbol instanceof Array)
 				symbol = symbol[0];
-			return "(" + (operator.leftOperand ? this.getTextFromFormula(formula.operands[0]) + " " : "") + symbol + (operator.rightOperand ? (operator.leftOperand ? " " : "") + this.getTextFromFormula(formula.operands[operator.leftOperand ? 1 : 0]) : "") + ")";
+			return "(" + (operator.leftOperand ? this.getTextFromFormula(formula.operands[0], symbolSet) + " " : "") + symbol + (operator.rightOperand ? (operator.leftOperand || /[\w]/.test(symbol) ? " " : "") + this.getTextFromFormula(formula.operands[operator.leftOperand ? 1 : 0], symbolSet) : "") + ")";
 		}
+		return "<INVALID_FORMULA>";
+	}
+	static getElementFromFormula(formula, symbolSet = SYMBOL_SETS[DEFAULT_SYMBOLS])
+	{
+		let elem = document.createElement("div");
+		if (formula.type === "variable")
+		{
+			elem.classList.add("variable");
+			elem.textContent = formula.name;
+		}
+		else if (formula.type === "operator")
+		{
+			let symbol = this.getSymbol(formula.operator, symbolSet);
+			let operator = OPERATORS[formula.operator];
+			if (symbol instanceof Array)
+				symbol = symbol[0];
+			elem.appendChild(document.createTextNode("("));
+			if (operator.leftOperand)
+			{
+				elem.appendChild(this.getElementFromFormula(formula.operands[0], symbolSet));
+				elem.appendChild(document.createTextNode(" "));
+			}
+			let operatorElem = document.createElement("div");
+			operatorElem.classList.add("operator");
+			operatorElem.textContent = symbol;
+			elem.appendChild(operatorElem);
+			if (operator.rightOperand)
+			{
+				if (operator.leftOperand || /[\w]/.test(symbol))
+					elem.appendChild(document.createTextNode(" "));
+				elem.appendChild(this.getElementFromFormula(formula.operands[operator.leftOperand ? 1 : 0], symbolSet));
+			}
+			elem.appendChild(document.createTextNode(")"));
+			//return "(" + (operator.leftOperand ? this.getTextFromFormula(formula.operands[0]) + " " : "") + symbol + (operator.rightOperand ? (operator.leftOperand ? " " : "") + this.getTextFromFormula(formula.operands[operator.leftOperand ? 1 : 0]) : "") + ")";
+		}
+		else
+		{
+			elem.textContent = "<INVALID_FORMULA>";
+		}
+		return elem;
+	}
+	static getSymbol(operator, symbolSet)
+	{
+		let symbol = symbolSet.symbols[operator];
+		if (symbol)
+			return symbol;
+		if (symbolSet.fallback)
+			return this.getSymbol(operator, SYMBOL_SETS[symbolSet.fallback])
+		return "<NO_SYMBOL_FOUND>";
 	}
 
 	/**
@@ -236,8 +310,10 @@ export default class BooleanAlgebraFormula
 		for (let i = 0; i < symbols.length; i++)
 		{
 			let symbol = symbols[i];
-			if (OPERATORS[symbol.type] && (!lowest || OPERATORS[symbol.type].precedence <= lowest.operator.precedence))
-				lowest = { index: i, symbol, operator: OPERATORS[symbol.type] }
+			let operator = OPERATORS[symbol.type];
+			if (operator && (operator.leftOperand || i === 0) && (!lowest || operator.precedence <= lowest.operator.precedence))
+				//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this makes sure that operators which only have one operand aren't chosen before operators left of them
+				lowest = { index: i, symbol, operator: operator }
 		}
 		return lowest?.index ?? -1;
 	}
@@ -252,9 +328,9 @@ export default class BooleanAlgebraFormula
 		let best;
 		for (let symbolSetName in SYMBOL_SETS)
 		{
-			for (let symbolName in SYMBOL_SETS[symbolSetName])
+			for (let symbolName in SYMBOL_SETS[symbolSetName].symbols)
 			{
-				let symbolAlias = SYMBOL_SETS[symbolSetName][symbolName];
+				let symbolAlias = SYMBOL_SETS[symbolSetName].symbols[symbolName];
 				if (!(symbolAlias instanceof Array))
 					symbolAlias = [symbolAlias];
 				for (let symbol of symbolAlias)

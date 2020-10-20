@@ -6,12 +6,27 @@ let editor;
 window.onload = main;
 function main()
 {
+	document.body.appendChild(document.createTextNode("Display symbol type: "));
+	let select = document.createElement("select");
+	for (let optionName in BooleanAlgebraFormula.TYPES)
+	{
+		let option = document.createElement("option");
+		option.textContent = BooleanAlgebraFormula.TYPES[optionName];
+		option.value = BooleanAlgebraFormula.TYPES[optionName];
+		select.appendChild(option);
+	}
+	document.body.appendChild(select);
+	select.onchange = e => {
+		update();
+	};
+	document.body.appendChild(document.createElement("br"));
+
 	let element = document.createElement("input");
 	element.classList.add("formula");
 	document.body.appendChild(element);
 	element.setAttribute("type", "text");
 	element.setAttribute("spellcheck", "false");
-	element.value = "((B => C) || A) => (A == B)";
+	element.value = "A => B EQUALS not C & D || E != F and true or false";
 	let interpretation = document.createElement("div");
 	document.body.appendChild(document.createTextNode(" is interpreted as: "));
 	interpretation.classList.add("formula");
@@ -32,7 +47,9 @@ function main()
 				table.push({ ...inputs, Output: formula.get(inputs) });
 			}
 			console.table(table);
-			interpretation.textContent = formula.getFormulaText();
+			interpretation.innerHTML = "";
+			//interpretation.textContent = formula.getFormulaText(select.value);
+			interpretation.appendChild(formula.getFormulaElement(select.value));
 		}
 		catch (e)
 		{

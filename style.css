@@ -6,19 +6,45 @@ html
 	font-family: Arial, Helvetica, sans-serif;
 }
 
+input, select, .formula
+{
+	background-color: rgb(29, 29, 29);
+	color: white;
+	border: none;
+	font-size: 1em;
+	outline: none;
+	border-radius: 0.3em;
+}
+
 input
 {
 	width: 20em;
+}
+
+select
+{
+	display: inline-block;
+	font-family: Consolas, monospace;
+	padding: 0.3em 0.5em;
+	margin-bottom: 0.5em;
 }
 
 .formula
 {
 	display: inline-block;
 	font-family: Consolas, monospace;
-	background-color: rgb(29, 29, 29);
-	color: white;
-	border: none;
 	padding: 0.5em 0.7em;
-	font-size: 1em;
-	outline: none;
+}
+.formula *
+{
+	display: inline-block;
+}
+
+.variable
+{
+	color: rgb(67, 170, 255);
+}
+.operator
+{
+	color: rgb(255, 81, 104);
 }
