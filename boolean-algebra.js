@@ -1,10 +1,12 @@
 
-const SYMBOL_TYPES = {
+const NOTATIONS = {
 	BOOLEAN_ALGEBRA: "Boolean Algebra",
 	NUMERCAL_BOOLEAN: "Numerical Boolean Algebra",
 	NAMES: "Names",
 	PROGRMMING: "Programming",
 	PYTHON: "Python",
+	JAVASCRIPT: "JavaScript",
+	LATEX: "LaTeX",
 };
 const OPERATOR_NAMES = {
 	BRACKET_OPEN: "bracket_open",
@@ -29,7 +31,7 @@ const OPERATORS = {
 	[OPERATOR_NAMES.FALSE]: { precedence: Infinity, func: () => 0 },
 };
 const SYMBOL_SETS = {
-	[SYMBOL_TYPES.BOOLEAN_ALGEBRA]: {
+	[NOTATIONS.BOOLEAN_ALGEBRA]: {
 		symbols: {
 			[OPERATOR_NAMES.BRACKET_OPEN]: "(",
 			[OPERATOR_NAMES.BRACKET_CLOSE]: ")",
@@ -38,13 +40,13 @@ const SYMBOL_SETS = {
 			[OPERATOR_NAMES.NOT]: ["¬", "-"],
 			[OPERATOR_NAMES.AND]: "∧",
 			[OPERATOR_NAMES.OR]: "∨",
-			[OPERATOR_NAMES.XOR]: "⊕",
+			[OPERATOR_NAMES.XOR]: "⊻",
 			[OPERATOR_NAMES.TRUE]: "⊤",
-			[OPERATOR_NAMES.FALSE]: ["F", "⊥"],
+			[OPERATOR_NAMES.FALSE]: "⊥",
 		},
 	},
-	[SYMBOL_TYPES.NUMERCAL_BOOLEAN]: {
-		fallback: SYMBOL_TYPES.BOOLEAN_ALGEBRA,
+	[NOTATIONS.NUMERCAL_BOOLEAN]: {
+		fallback: NOTATIONS.BOOLEAN_ALGEBRA,
 		symbols: {//[OPERATOR_NAMES.IMPLICATION]: ["⇒", "=>"],
 			//[OPERATOR_NAMES.EQUIVALENCE]: ["⇔", "<=>"],
 			//[OPERATOR_NAMES.NOT]: "¬",
@@ -55,31 +57,8 @@ const SYMBOL_SETS = {
 			[OPERATOR_NAMES.FALSE]: "0",
 		},
 	},
-	[SYMBOL_TYPES.PROGRMMING]: {
-		fallback: SYMBOL_TYPES.BOOLEAN_ALGEBRA,
-		symbols: {
-			[OPERATOR_NAMES.IMPLICATION]: "<=",
-			[OPERATOR_NAMES.EQUIVALENCE]: "==",
-			[OPERATOR_NAMES.NOT]: ["!", "not"],
-			[OPERATOR_NAMES.AND]: ["&&", "&", "and"],
-			[OPERATOR_NAMES.OR]: ["||", "|", "or"],
-			[OPERATOR_NAMES.XOR]: ["!=", "^"],
-			[OPERATOR_NAMES.TRUE]: "true",
-			[OPERATOR_NAMES.FALSE]: "false"
-		},
-	},
-	[SYMBOL_TYPES.PYTHON]: {
-		fallback: SYMBOL_TYPES.PROGRMMING,
-		symbols: {
-			[OPERATOR_NAMES.NOT]: "not",
-			[OPERATOR_NAMES.AND]: "and",
-			[OPERATOR_NAMES.OR]: "or",
-			[OPERATOR_NAMES.TRUE]: "True",
-			[OPERATOR_NAMES.FALSE]: "False"
-		},
-	},
-	[SYMBOL_TYPES.NAMES]: {
-		fallback: SYMBOL_TYPES.BOOLEAN_ALGEBRA,
+	[NOTATIONS.NAMES]: {
+		fallback: NOTATIONS.BOOLEAN_ALGEBRA,
 		symbols: {
 			[OPERATOR_NAMES.IMPLICATION]: "IMPLIES",
 			[OPERATOR_NAMES.EQUIVALENCE]: ["EQUALS", "EQUIVALENCE"],
@@ -91,37 +70,51 @@ const SYMBOL_SETS = {
 			[OPERATOR_NAMES.FALSE]: ["FALSE", "ZERO"],
 		},
 	},
-};
-const DEFAULT_SYMBOLS = SYMBOL_TYPES.BOOLEAN_ALGEBRA;
-
-function getStack()
-{
-	let array = [];
-	return new Proxy(array, {
-		get(target, property)
-		{
-			if (property === "top")
-				return target[target.length - 1];
-			if (!isNaN(+property))
-				return target[((+property) % target.length + target.length) % target.length];
-			return Reflect.get(...arguments);
+	[NOTATIONS.LATEX]: {
+		fallback: NOTATIONS.BOOLEAN_ALGEBRA,
+		symbols: {
+			[OPERATOR_NAMES.IMPLICATION]: ["\\Rightarrow", "\\to", "\\rightarrow", "\\supset", "\\implies"],
+			[OPERATOR_NAMES.EQUIVALENCE]: ["\\Leftrightarrow", "\\equiv", "\\leftrightarrow", "\\iff"],
+			[OPERATOR_NAMES.NOT]: ["\\lnot", "\\neg", "\\sim"],
+			[OPERATOR_NAMES.AND]: ["\\land", "\\wedge", "\\cdot", "\\&"],
+			[OPERATOR_NAMES.OR]: ["\\lor", "\\vee", "\\parallel"],
+			[OPERATOR_NAMES.XOR]: ["\\veebar", "\\oplus", "\\not\\equiv"],
+			[OPERATOR_NAMES.TRUE]: ["\\top"],
+			[OPERATOR_NAMES.FALSE]: ["\\bot"],
 		},
-		set(target, property, value)
-		{
-			if (property === "top")
-			{
-				//target[target.length - 1] = value;
-				return this[-1];
-			}
-			if (!isNaN(+property) && +property < 0)
-			{
-				target[target.length - +property] = value;
-				return true;
-			}
-			return Reflect.set(...arguments);
-		}
-	});
-}
+	},
+	[NOTATIONS.PROGRMMING]: {
+		fallback: NOTATIONS.BOOLEAN_ALGEBRA,
+		symbols: {
+			[OPERATOR_NAMES.IMPLICATION]: "<=",
+			[OPERATOR_NAMES.EQUIVALENCE]: "==",
+			[OPERATOR_NAMES.NOT]: ["!", "not"],
+			[OPERATOR_NAMES.AND]: ["&&", "&", "and"],
+			[OPERATOR_NAMES.OR]: ["||", "|", "or"],
+			[OPERATOR_NAMES.XOR]: ["!=", "^"],
+			[OPERATOR_NAMES.TRUE]: "true",
+			[OPERATOR_NAMES.FALSE]: "false"
+		},
+	},
+	[NOTATIONS.PYTHON]: {
+		fallback: NOTATIONS.PROGRMMING,
+		symbols: {
+			[OPERATOR_NAMES.NOT]: "not",
+			[OPERATOR_NAMES.AND]: "and",
+			[OPERATOR_NAMES.OR]: "or",
+			[OPERATOR_NAMES.TRUE]: "True",
+			[OPERATOR_NAMES.FALSE]: "False"
+		},
+	},
+	[NOTATIONS.JAVASCRIPT]: {
+		fallback: NOTATIONS.PROGRMMING,
+		symbols: {
+			[OPERATOR_NAMES.EQUIVALENCE]: "===",
+			[OPERATOR_NAMES.XOR]: "!==",
+		},
+	},
+};
+const DEFAULT_SYMBOLS = NOTATIONS.BOOLEAN_ALGEBRA;
 
 export default class BooleanAlgebraFormula
 {
@@ -133,7 +126,6 @@ export default class BooleanAlgebraFormula
 	{
 		this.formula = BooleanAlgebraFormula.parseText(text);
 		this.variables = BooleanAlgebraFormula.getVariables(this.formula);
-		console.log(this.formula, this.variables);
 	}
 
 	get(inputs)
@@ -141,23 +133,24 @@ export default class BooleanAlgebraFormula
 		return BooleanAlgebraFormula.calculateWith(inputs, this.formula);
 	}
 
-	getFormulaText(symbolType = SYMBOL_TYPES.BOOLEAN_ALGEBRA)
+	getFormulaText(symbolType = NOTATIONS.BOOLEAN_ALGEBRA)
 	{
 		return BooleanAlgebraFormula.getTextFromFormula(this.formula, SYMBOL_SETS[symbolType]);
 	}
-	getFormulaElement(symbolType = SYMBOL_TYPES.BOOLEAN_ALGEBRA)
+	getFormulaElement(symbolType = NOTATIONS.BOOLEAN_ALGEBRA, putAllParentheses = true)
 	{
-		return BooleanAlgebraFormula.getElementFromFormula(this.formula, SYMBOL_SETS[symbolType]);
+		return BooleanAlgebraFormula.getElementFromFormula(this.formula, SYMBOL_SETS[symbolType], putAllParentheses);
 	}
-	createTable(symbolType = SYMBOL_TYPES.BOOLEAN_ALGEBRA)
+	createTable(symbolType = NOTATIONS.BOOLEAN_ALGEBRA)
 	{
 		let t = document.createElement("table");
 		let table = [];
-		for (let i = 0; i < 2 ** this.variables.length; i++)
+		let vars = this.variables.sort();
+		for (let i = 0; i < 2 ** vars.length; i++)
 		{
 			let inputs = {};
-			for (let j = 0; j < this.variables.length; j++)
-				inputs[this.variables[j]] = (i >> (this.variables.length - 1 - j)) & 1;
+			for (let j = 0; j < vars.length; j++)
+				inputs[vars[j]] = (i >> (vars.length - 1 - j)) & 1;
 			table.push({ ...inputs, Output: this.get(inputs) });
 		}
 		table = [Object.keys(table[0]), ...table.map(row => Object.values(row).map(cell => BooleanAlgebraFormula.getSymbol(cell ? OPERATOR_NAMES.TRUE : OPERATOR_NAMES.FALSE, SYMBOL_SETS[symbolType])))];
@@ -173,6 +166,55 @@ export default class BooleanAlgebraFormula
 			t.appendChild(tr);
 		}
 		return t;
+	}
+
+	/**
+	 * 
+	 * @param {BooleanAlgebraFormula[]} formulas 
+	 */
+	static createTableOfFormulas(formulas, symbolType = NOTATIONS.NUMERCAL_BOOLEAN)
+	{
+		let variables = [...new Set(formulas.map(formula => formula.variables).flat()).values()];
+		let tableArray = [];
+		variables.sort();
+		for (let i = 0; i < 2 ** variables.length; i++)
+		{
+			let inputs = {};
+			for (let j = 0; j < variables.length; j++)
+				inputs[variables[j]] = (i >> (variables.length - 1 - j)) & 1;
+			let outputs = {};
+			for (let j = 0; j < formulas.length; j++)
+				outputs[`O<sub>${j}</sub>`] = formulas[j].get(inputs);
+			tableArray.push({ ...inputs, ...outputs });
+		}
+		tableArray = [Object.keys(tableArray[0]), ...tableArray.map(row => Object.values(row))];
+
+
+		let table = document.createElement("table");
+		for (let row of tableArray)
+		{
+			let trow = document.createElement("tr");
+			for (let i = 0; i < row.length; i++)
+			{
+				let cell = row[i];
+				let tcell = document.createElement("td");
+				if (typeof cell === "number")
+				{
+					tcell.textContent = BooleanAlgebraFormula.getSymbol(cell ? OPERATOR_NAMES.TRUE : OPERATOR_NAMES.FALSE, SYMBOL_SETS[symbolType]);
+					tcell.classList.add(cell ? "true" : "false");
+				}
+				else
+				{
+					if (i < variables.length)
+						tcell.textContent = cell;
+					else
+						tcell.innerHTML = cell;
+				}
+				trow.appendChild(tcell);
+			}
+			table.appendChild(trow);
+		}
+		return table;
 	}
 
 	static calculate(formulaText, inputs)
@@ -205,7 +247,7 @@ export default class BooleanAlgebraFormula
 		}
 		return "<INVALID_FORMULA>";
 	}
-	static getElementFromFormula(formula, symbolSet = SYMBOL_SETS[DEFAULT_SYMBOLS])
+	static getElementFromFormula(formula, symbolSet = SYMBOL_SETS[DEFAULT_SYMBOLS], putAllParentheses = true, prevSymbolPrecedence = -Infinity)
 	{
 		let elem = document.createElement("div");
 		if (formula.type === "variable")
@@ -219,10 +261,12 @@ export default class BooleanAlgebraFormula
 			let operator = OPERATORS[formula.operator];
 			if (symbol instanceof Array)
 				symbol = symbol[0];
-			elem.appendChild(document.createTextNode("("));
+			let parentheses = (operator.precedence <= prevSymbolPrecedence || putAllParentheses) && (operator.leftOperand || operator.rightOperand) && prevSymbolPrecedence !== -Infinity;
+			if (parentheses)
+				elem.appendChild(document.createTextNode("("));
 			if (operator.leftOperand)
 			{
-				elem.appendChild(this.getElementFromFormula(formula.operands[0], symbolSet));
+				elem.appendChild(this.getElementFromFormula(formula.operands[0], symbolSet, putAllParentheses, operator.precedence));
 				elem.appendChild(document.createTextNode(" "));
 			}
 			let operatorElem = document.createElement("div");
@@ -233,9 +277,10 @@ export default class BooleanAlgebraFormula
 			{
 				if (operator.leftOperand || /[\w]/.test(symbol))
 					elem.appendChild(document.createTextNode(" "));
-				elem.appendChild(this.getElementFromFormula(formula.operands[operator.leftOperand ? 1 : 0], symbolSet));
+				elem.appendChild(this.getElementFromFormula(formula.operands[operator.leftOperand ? 1 : 0], symbolSet, putAllParentheses, operator.precedence - 0.5));
 			}
-			elem.appendChild(document.createTextNode(")"));
+			if (parentheses)
+				elem.appendChild(document.createTextNode(")"));
 			//return "(" + (operator.leftOperand ? this.getTextFromFormula(formula.operands[0]) + " " : "") + symbol + (operator.rightOperand ? (operator.leftOperand ? " " : "") + this.getTextFromFormula(formula.operands[operator.leftOperand ? 1 : 0]) : "") + ")";
 		}
 		else
@@ -278,6 +323,9 @@ export default class BooleanAlgebraFormula
 	 */
 	static parseText(text)
 	{
+		/**
+		 * @type {(string | {type: string, text: string, name?: string})[]}
+		 */
 		let symbols = [text];
 		let index;
 		while ((index = symbols.findIndex(symbol => typeof symbol === "string")) >= 0)
@@ -286,14 +334,14 @@ export default class BooleanAlgebraFormula
 			symbols.splice(index, 1, ...this.findSymbol(textSegment));
 		}
 		let bracketTree = [];
-		let stack = getStack();
+		let stack = [];
 		stack.push(bracketTree);
 		for (let symbol of symbols)
 		{
 			if (symbol.type === OPERATOR_NAMES.BRACKET_OPEN)
 			{
 				let elem = [];
-				stack.top.push(elem);
+				stack[stack.length - 1].push(elem);
 				stack.push(elem);
 			}
 			else if (symbol.type === OPERATOR_NAMES.BRACKET_CLOSE)
@@ -302,7 +350,7 @@ export default class BooleanAlgebraFormula
 			}
 			else if (symbol.type !== "nothing")
 			{
-				stack.top.push(symbol);
+				stack[stack.length - 1].push(symbol);
 			}
 		}
 		let tree = this.resolveToTree(bracketTree);
@@ -341,8 +389,8 @@ export default class BooleanAlgebraFormula
 		{
 			let symbol = symbols[i];
 			let operator = OPERATORS[symbol.type];
-			if (operator && (operator.leftOperand || i === 0) && (!lowest || operator.precedence <= lowest.operator.precedence))
-				//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this makes sure that operators which only have one operand aren't chosen before operators left of them
+			if (operator && (operator.leftOperand || i === 0) && (operator.rightOperand || i === symbols.length - 1) && (!lowest || operator.precedence < lowest.operator.precedence))
+				//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this makes sure that operators which only have one operand aren't chosen before operators on the side where they don't have an operand
 				lowest = { index: i, symbol, operator: operator }
 		}
 		return lowest?.index ?? -1;
@@ -385,9 +433,9 @@ export default class BooleanAlgebraFormula
 		return [{ type: text.trim() ? "variable" : "nothing", name: text.trim(), text }];
 	}
 
-	static get TYPES()
+	static get NOTATIONS()
 	{
-		return SYMBOL_TYPES;
+		return NOTATIONS;
 	}
 	static get SYMBOL_SETS()
 	{
@@ -399,82 +447,91 @@ export class FormulaEditor
 {
 	/**
 	 * 
-	 * @param {HTMLElement} element 
 	 * @param {string} formula 
 	 */
-	constructor(element, formula = "")
+	constructor(formula = "", showAllParentheses = true, displayNotation = NOTATIONS.BOOLEAN_ALGEBRA, name = "Formula")
 	{
-		this.parentElement = element;
-		//this.element.setAttribute("tabIndex", "0");
-
 		this.element = document.createElement("div");
 		this.element.classList.add("formula-editor");
-		this.parentElement.appendChild(this.element);
 
+		this.formula;
+		this.showAllParentheses = showAllParentheses;
+		this.displayNotation = displayNotation;
 
-		this.element.appendChild(document.createTextNode("Display symbol type: "));
-		this.select = document.createElement("select");
-		for (let optionName in BooleanAlgebraFormula.TYPES)
-		{
-			let option = document.createElement("option");
-			option.textContent = BooleanAlgebraFormula.TYPES[optionName];
-			option.value = BooleanAlgebraFormula.TYPES[optionName];
-			this.select.appendChild(option);
-		}
-		this.element.appendChild(this.select);
-		this.select.onchange = e =>
-		{
-			this.update();
-		};
+		this.element.appendChild(document.createTextNode(name + ":"));
+
+		this.closeButton = document.createElement("button");
+		this.closeButton.classList.add("close");
+		this.closeButton.textContent = "+";
+		this.closeButton.onclick = e => this.fireEvent("close", this);
+		this.element.appendChild(this.closeButton);
 
 		this.inputElement = document.createElement("input");
-		this.inputElement.classList.add("formula");
-		this.element.appendChild(this.inputElement);
+		this.inputElement.classList.add("formula", "formula-input");
 		this.inputElement.setAttribute("type", "text");
 		this.inputElement.setAttribute("spellcheck", "false");
 		this.inputElement.value = formula;
-		this.element.appendChild(document.createTextNode("Formula interpretation:"));
+		this.element.appendChild(this.inputElement);
 		this.interpretation = document.createElement("div");
-		this.interpretation.classList.add("formula");
+		this.interpretation.classList.add("formula", "formula-interpretation");
 		this.element.appendChild(this.interpretation);
 
-		this.element.appendChild(document.createTextNode("Truth table:"));
-		this.tableContainer = document.createElement("div");
-		this.element.appendChild(this.tableContainer);
+		this.events = {};
 
 		this.inputElement.oninput = () =>
 		{
 			this.update();
 		};
 		this.update();
-	//editor = new FormulaEditor(element, formula);
+		//editor = new FormulaEditor(element, formula);
+	}
+	on(type, callback)
+	{
+		if (!this.events[type])
+			this.events[type] = [];
+		this.events[type].push(callback);
+	}
+	removeListener(type, callback)
+	{
+		if (this.events[type])
+		{
+			let index = this.events[type].indexOf(callback);
+			if (index >= 0)
+				this.events[type].splice(index, 1);
+		}
+	}
+	fireEvent(type, ...args)
+	{
+		if (this.events[type])
+			this.events[type].forEach(callback => callback(...args));
 	}
 
 	update()
 	{
-		console.clear();
-		this.tableContainer.innerHTML = "";
 		this.interpretation.innerHTML = "";
 		try
 		{
-			let formula = new BooleanAlgebraFormula(this.inputElement.value);
+			this.formula = new BooleanAlgebraFormula(this.inputElement.value);
 			// formula.variables.sort();
 			let table = [];
-			for (let i = 0; i < 2 ** formula.variables.length; i++)
+			for (let i = 0; i < 2 ** this.formula.variables.length; i++)
 			{
 				let inputs = {};
-				for (let j = 0; j < formula.variables.length; j++)
-					inputs[formula.variables[j]] = (i >> (formula.variables.length - 1 - j)) & 1;
-				table.push({ ...inputs, Output: formula.get(inputs) });
+				for (let j = 0; j < this.formula.variables.length; j++)
+					inputs[this.formula.variables[j]] = (i >> (this.formula.variables.length - 1 - j)) & 1;
+				table.push({ ...inputs, Output: this.formula.get(inputs) });
 			}
-			//interpretation.textContent = formula.getFormulaText(select.value);
-			this.interpretation.appendChild(formula.getFormulaElement(this.select.value));
-			this.tableContainer.appendChild(formula.createTable(this.select.value));
+			// interpretation.textContent = this.formula.getFormulaText(select.value);
+			this.interpretation.appendChild(this.formula.getFormulaElement(this.displayNotation, this.showAllParentheses));
+			// this.tableContainer.appendChild(this.formula.createTable(this.select.value));
+			this.valid = true;
 		}
 		catch (e)
 		{
 			this.interpretation.textContent = "Invalid formula";
+			this.valid = false;
 		}
+		this.fireEvent("updated", { valid: this.valid });
 		//console.log(BooleanAlgebraFormula.calculate(element.value, { A: 1, B: 0, C: 1, D: 0 }));
 	}
 }

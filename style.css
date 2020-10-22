@@ -1,19 +1,78 @@
 
 html
 {
-	background-color: rgb(46, 46, 46);
+	background-color: rgb(32, 32, 32);
 	color: white;
 	font-family: Arial, Helvetica, sans-serif;
+	margin: 0;
 }
 
 body
 {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 1em;
+	/* grid-template-columns: 1fr 1fr; */
+	/* grid-auto-flow: column; */
+	margin: 0;
 }
 
-input, select, .formula
+
+.layout
+{
+	position: fixed;
+	display: grid;
+	/* grid-template-columns: 1fr auto; */
+	grid-template-rows: auto 1fr;
+	width: 100%;
+	height: 100%;
+}
+
+.options
+{
+	padding: 1em;
+	display: grid;
+	grid-auto-flow: column;
+	gap: 1em;
+	align-items: center;
+	grid-template-columns: auto auto 1fr auto auto;
+	background-color: rgb(46, 46, 46);
+}
+
+.formula-area
+{
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+.truth-table.formula-editor
+{
+	position: absolute;
+	top: 0;
+	right: 0;
+	transform: translate(110%, 0);
+	height: calc(100% - 2em);
+	overflow: auto;
+	border-radius: 0;
+	border-bottom-right-radius: 0;
+	box-shadow: 0em 1em 1em rgba(0, 0, 0, 0.356);
+	transition: transform .3s;
+}
+.truth-table.show
+{
+	transform: translate(0%, 0);
+}
+
+
+.container
+{
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(20em, 1fr));
+	/* grid-template-columns: repeat(auto-fit, fit-content(1fr)); */
+	gap: 1em;
+	padding: 1em;
+	width: calc(100% - 2em);
+}
+
+input, select, .formula, button
 {
 	background-color: rgb(29, 29, 29);
 	color: white;
@@ -21,7 +80,34 @@ input, select, .formula
 	font-size: 1em;
 	outline: none;
 	border-radius: 0.3em;
-	margin: 0.5em 0;
+	padding: 0.3em 0.5em;
+	transition: background-color .2s;
+}
+
+.close
+{
+	padding: 0.04em;
+	grid-area: close;
+	border-radius: 1em;
+	width: 1.2em;
+	height: 1.2em;
+	font-size: 1.1em;
+	transform: rotate(45deg);
+	/* animation: rotate forwards infinite 20s linear; */
+}
+.close:hover
+{
+	background-color: rgb(75, 34, 34);
+}
+
+.toggle
+{
+	background-color: rgba(0, 0, 0, 0);
+	transition-duration: .2s;
+}
+.toggle.active
+{
+	background-color: rgba(0, 0, 0, 0.445);
 }
 
 select
@@ -31,11 +117,55 @@ select
 	padding: 0.3em 0.5em;
 }
 
+
+
 .formula-editor
 {
+	background-color: rgb(46, 46, 46);
 	display: grid;
+	grid-template-areas: 
+		"title close"
+		"input input"
+		"formula formula";
+	grid-template-columns: 1fr auto;
 	min-height: 0;
 	height: fit-content;
+	padding: 1em;
+	height: auto;
+	width: auto;
+	min-width: 0;
+	min-height: 0;
+	border-radius: 0.3em;
+	gap: 0.5em;
+}
+.add
+{
+	display: grid;
+	grid-template-areas: none;
+	grid-template-columns: none;
+	grid-template-rows: none;
+	color: rgb(67, 170, 255);
+	justify-content: center;
+	align-content: center;
+	transition: background-color .2s;
+}
+.add > *
+{
+	font-size: 5em;
+}
+.add:hover
+{
+	background-color: rgb(68, 68, 68);
+}
+
+
+.formula-interpretation
+{
+	grid-area: formula;
+}
+.formula-input
+{
+	grid-area: input;
 }
 
 .formula
@@ -43,6 +173,7 @@ select
 	display: inline-block;
 	font-family: Consolas, monospace;
 	padding: 0.5em 0.7em;
+	white-space: pre;
 }
 .formula *
 {
@@ -70,4 +201,13 @@ table td
 	background-color: rgb(29, 29, 29);
 	padding: 0.3em 0.5em;
 	border-radius: 0.1em;
+}
+
+.true
+{
+	background-color: rgb(39, 71, 39);
+}
+.false
+{
+	background-color: rgb(70, 42, 42);
 }
