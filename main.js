@@ -80,9 +80,9 @@ function updateFormulas()
 	loadFormulas(formulaStrings);
 }
 
-function getStateParams()
+function getStateParams(f = formulas)
 {
-	let formulaStrings = formulas.map(formula => formula.inputElement.value);
+	let formulaStrings = f.map(formula => formula.inputElement.value);
 	let url = "?formulas=" + formulaStrings.map(v => btoa(encodeURIComponent(v))).join(",");
 	return url;
 }
@@ -130,9 +130,9 @@ function onclose(target)
 	let index = formulas.indexOf(target);
 	if (index >= 0)
 	{
-		cleanup(target);
-		formulas.splice(index, 1);
-		onupdate({ valid: true });
+		let url = getStateParams(formulas.filter(f => f !== target));
+		window.history.pushState({}, "Boolean algebra", url);
+		updateFormulas();
 	}
 }
 
