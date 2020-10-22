@@ -159,6 +159,8 @@ select
 	color: hsl(0, 0%, 61%);
 	justify-content: center;
 	align-content: center;
+	cursor: default;
+	user-select: none;
 	transition: background-color .2s, color .2s;
 }
 .add > *
