@@ -7,6 +7,7 @@ const NOTATIONS = {
 	PYTHON: "Python",
 	JAVASCRIPT: "JavaScript",
 	LATEX: "LaTeX",
+	HTML: "HTML",
 };
 const OPERATOR_NAMES = {
 	BRACKET_OPEN: "bracket_open",
@@ -111,6 +112,21 @@ const SYMBOL_SETS = {
 		symbols: {
 			[OPERATOR_NAMES.EQUIVALENCE]: "===",
 			[OPERATOR_NAMES.XOR]: "!==",
+		},
+	},
+	[NOTATIONS.HTML]: {
+		fallback: NOTATIONS.BOOLEAN_ALGEBRA,
+		symbols: {
+			[OPERATOR_NAMES.BRACKET_OPEN]: "(",
+			[OPERATOR_NAMES.BRACKET_CLOSE]: ")",
+			[OPERATOR_NAMES.IMPLICATION]: ["&rArr;", "&rarr;", "&sup;", "&#8658;", "&#8594;", "&#8835;"],
+			[OPERATOR_NAMES.EQUIVALENCE]: ["&hArr;", "&equiv;", "&harr;", "&#8660;", "&#8801;", "&#8596;"],
+			[OPERATOR_NAMES.NOT]: ["&not;", "&tilde;", "&excl;", "&#172;", "&#732;", "&#33;"],
+			[OPERATOR_NAMES.AND]: ["&and;", "&middot;", "&amp;", "&#8743;", "&#183;", "&#38;"],
+			[OPERATOR_NAMES.OR]: ["&or;", "&plus;", "&parallel;", "&#8744;", "&#43;", "&#8741;"],
+			[OPERATOR_NAMES.XOR]: ["&veebar;", "&oplus;", "&nequiv;", "&#8891;", "&#8853;", "&8802;"],
+			[OPERATOR_NAMES.TRUE]: ["&top;", "&#8868;"],
+			[OPERATOR_NAMES.FALSE]: ["&perp;", "&#8869;"],
 		},
 	},
 };
