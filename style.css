@@ -48,6 +48,8 @@ body
 
 .formula-area
 {
+	display: grid;
+	grid-template-columns: 1fr auto;
 	position: relative;
 	width: 100%;
 	height: 100%;
@@ -62,21 +64,37 @@ body
 
 .truth-table.formula-editor
 {
-	position: absolute;
-	top: 0;
-	right: 0;
-	transform: translate(110%, 0);
 	height: calc(100% - 2em);
-	max-width: calc(100% - 2em);
+	max-width: 50vw;
 	overflow: auto;
 	border-radius: 0;
 	border-bottom-right-radius: 0;
 	box-shadow: 0em 0em 1em rgba(0, 0, 0, 0.356);
 	transition: transform .3s;
 }
-.truth-table.show
+#show-truth-table
 {
-	transform: translate(0%, 0);
+	display: none;
+}
+
+@media screen and (max-width: 70em)
+{
+	.truth-table.formula-editor
+	{
+		position: absolute;
+		top: 0;
+		right: 0;
+		transform: translate(110%, 0);
+		max-width: calc(100% - 2em);
+	}
+	.truth-table.show
+	{
+		transform: translate(0%, 0);
+	}
+	#show-truth-table
+	{
+		display: unset;
+	}
 }
 
 
@@ -89,7 +107,7 @@ body
 	padding: 1em;
 	width: calc(100% - 2em);
 }
-@media screen and (max-width: 40em)
+@media screen and (max-width: 70em)
 {
 	.container
 	{

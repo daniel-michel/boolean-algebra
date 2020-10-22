@@ -58,6 +58,11 @@ function main()
 		showTruthTable.classList.toggle("active");
 		tableContainer.classList.toggle("show", showTruthTable.classList.contains("active"));
 	};
+	document.querySelector("#scroll-container").onclick = e =>
+	{
+		showTruthTable.classList.remove("active");
+		tableContainer.classList.remove("show");
+	};
 
 
 	updateFormulas();
