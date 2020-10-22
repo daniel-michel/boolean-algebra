@@ -32,10 +32,18 @@ body
 	grid-auto-flow: column;
 	gap: 1em;
 	align-items: center;
-	grid-template-columns: auto auto auto 1fr auto;
+	grid-template-columns: auto auto auto auto 1fr;
 	background-color: rgb(46, 46, 46);
 	box-shadow: 0em 0em 1em rgba(0, 0, 0, 0.356);
 	z-index: 1;
+}
+@media screen and (max-width: 45em)
+{
+	.options
+	{
+		grid-auto-flow: dense;
+		grid-template-columns: auto 1fr;
+	}
 }
 
 .formula-area
@@ -59,6 +67,7 @@ body
 	right: 0;
 	transform: translate(110%, 0);
 	height: calc(100% - 2em);
+	max-width: calc(100% - 2em);
 	overflow: auto;
 	border-radius: 0;
 	border-bottom-right-radius: 0;
@@ -74,11 +83,18 @@ body
 .container
 {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(20em, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(30em, 1fr));
 	/* grid-template-columns: repeat(auto-fit, fit-content(1fr)); */
 	gap: 1em;
 	padding: 1em;
 	width: calc(100% - 2em);
+}
+@media screen and (max-width: 40em)
+{
+	.container
+	{
+		grid-template-columns: 1fr;
+	}
 }
 
 input, select, .formula, button
@@ -126,6 +142,7 @@ select
 {
 	display: inline-block;
 	font-family: Consolas, monospace;
+	min-width: 0;
 	padding: 0.3em 0.5em;
 }
 
@@ -239,17 +256,20 @@ table td
 
 ::-webkit-scrollbar
 {
-  width: 1em;
+	width: 1em;
 }
 ::-webkit-scrollbar-track
 {
-  background: hsl(0, 0%, 10%); 
+	background: hsl(0, 0%, 10%); 
 }
 ::-webkit-scrollbar-thumb
 {
-  background: hsl(0, 0%, 25%); 
+	background: hsl(0, 0%, 25%); 
 }
 ::-webkit-scrollbar-thumb:hover
 {
-  background: hsl(0, 0%, 21%); 
+	background: hsl(0, 0%, 21%); 
+}
+::-webkit-scrollbar-corner{
+	background: hsl(0, 0%, 10%); 
 }
