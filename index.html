@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +11,7 @@
 	<link rel="stylesheet" href="style.css">
 
 </head>
+
 <body>
 
 	<div class="layout">
@@ -17,21 +19,24 @@
 			Display notation:
 			<select id="notation-selection">
 			</select>
-			<div></div>
 			<button id="show-all-parentheses" class="toggle active" title="Show all parentheses">()</button>
+			<div></div>
 			<button id="show-truth-table" class="toggle" title="Show truth table">Show truth table</button>
 			<!-- <button id="toggle-help" class="toggle active" title="Show help">?</button> -->
 		</div>
 		<div class="formula-area">
-			<div class="container">
-				<div class="formula-editor add">
-					<div>+</div>
+			<div id="scroll-container">
+				<div class="container">
+					<div class="formula-editor add">
+						<div>+</div>
+					</div>
 				</div>
 			</div>
 			<div class="formula-editor truth-table"></div>
 		</div>
 	</div>
 
-	
+
 </body>
+
 </html>
