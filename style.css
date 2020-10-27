@@ -32,7 +32,8 @@ body
 	grid-auto-flow: column;
 	gap: 1em;
 	align-items: center;
-	grid-template-columns: auto auto auto auto 1fr;
+	grid-template-columns: auto auto auto auto auto 1fr;
+	grid-template-areas: "label notation parentheses symbol truthtable";
 	background-color: rgb(46, 46, 46);
 	box-shadow: 0em 0em 1em rgba(0, 0, 0, 0.356);
 	z-index: 1;
@@ -42,8 +43,30 @@ body
 	.options
 	{
 		grid-auto-flow: dense;
-		grid-template-columns: auto 1fr;
+		grid-template-columns: auto auto 1fr;
+		grid-template-areas: "label label notation"
+			"parentheses symbol truthtable";
 	}
+}
+#notation-label
+{
+	grid-area: label;
+}
+#notation-selection
+{
+	grid-area: notation;
+}
+#show-all-parentheses
+{
+	grid-area: parentheses;
+}
+#use-non-text-symbols
+{
+	grid-area: symbol;
+}
+#show-truth-table
+{
+	grid-area: truthtable;
 }
 
 .formula-area
@@ -220,6 +243,8 @@ select
 
 .formula
 {
+	--operator-color: hsl(352, 100%, 66%);
+	--variable-color: hsl(207, 100%, 63%);
 	display: inline-block;
 	font-family: Consolas, monospace;
 	padding: 0.5em 0.7em;
@@ -240,11 +265,11 @@ select
 
 .variable
 {
-	color: rgb(67, 170, 255);
+	color: var(--variable-color);
 }
 .operator
 {
-	color: rgb(255, 81, 104);
+	color: var(--operator-color);
 }
 
 table

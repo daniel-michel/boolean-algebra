@@ -38,7 +38,7 @@ const SYMBOL_SETS = {
 			[OPERATOR_NAMES.BRACKET_CLOSE]: ")",
 			[OPERATOR_NAMES.IMPLICATION]: ["⇒", "=>"],
 			[OPERATOR_NAMES.EQUIVALENCE]: ["⇔", "<=>"],
-			[OPERATOR_NAMES.NOT]: ["¬", "-"],
+			[OPERATOR_NAMES.NOT]: ["¬", "￢", "-"],
 			[OPERATOR_NAMES.AND]: "∧",
 			[OPERATOR_NAMES.OR]: "∨",
 			[OPERATOR_NAMES.XOR]: "⊻",
@@ -48,9 +48,11 @@ const SYMBOL_SETS = {
 	},
 	[NOTATIONS.NUMERCAL_BOOLEAN]: {
 		fallback: NOTATIONS.BOOLEAN_ALGEBRA,
-		symbols: {//[OPERATOR_NAMES.IMPLICATION]: ["⇒", "=>"],
+		symbols: {
+			//[OPERATOR_NAMES.IMPLICATION]: ["⇒", "=>"],
 			//[OPERATOR_NAMES.EQUIVALENCE]: ["⇔", "<=>"],
 			//[OPERATOR_NAMES.NOT]: "¬",
+			[OPERATOR_NAMES.NOT]: { style: "border-top: 0.1em solid var(--operator-color); padding-top: 0.1em" },
 			[OPERATOR_NAMES.AND]: ["·", "*"],
 			[OPERATOR_NAMES.OR]: "+",
 			[OPERATOR_NAMES.XOR]: "⊕",
@@ -149,13 +151,13 @@ export default class BooleanAlgebraFormula
 		return BooleanAlgebraFormula.calculateWith(inputs, this.formula);
 	}
 
-	getFormulaText(symbolType = NOTATIONS.BOOLEAN_ALGEBRA)
+	getFormulaText(symbolType = NOTATIONS.BOOLEAN_ALGEBRA, putAllParentheses = true)
 	{
-		return BooleanAlgebraFormula.getTextFromFormula(this.formula, SYMBOL_SETS[symbolType]);
+		return BooleanAlgebraFormula.getTextFromFormula(this.formula, SYMBOL_SETS[symbolType], putAllParentheses);
 	}
-	getFormulaElement(symbolType = NOTATIONS.BOOLEAN_ALGEBRA, putAllParentheses = true)
+	getFormulaElement(symbolType = NOTATIONS.BOOLEAN_ALGEBRA, putAllParentheses = true, useNonTextSymbols = true)
 	{
-		return BooleanAlgebraFormula.getElementFromFormula(this.formula, SYMBOL_SETS[symbolType], putAllParentheses);
+		return BooleanAlgebraFormula.getElementFromFormula(this.formula, SYMBOL_SETS[symbolType], putAllParentheses, useNonTextSymbols);
 	}
 	createTable(symbolType = NOTATIONS.BOOLEAN_ALGEBRA)
 	{
@@ -248,22 +250,38 @@ export default class BooleanAlgebraFormula
 		throw "Invalid type: " + formula.type;
 	}
 
-	static getTextFromFormula(formula, symbolSet = SYMBOL_SETS[DEFAULT_SYMBOLS])
+	static getTextFromFormula(formula, symbolSet = SYMBOL_SETS[DEFAULT_SYMBOLS], putAllParentheses = true, prevSymbolPrecedence = -Infinity)
 	{
 		if (formula.type === "variable")
 			return formula.name;
 		else if (formula.type === "operator")
 		{
-			//let symbol = (symbolSet.symbols[formula.operator] ?? SYMBOL_SETS[DEFAULT_SYMBOLS][formula.operator]) ?? " <NO_SYMBOL_FOUND> ";
 			let symbol = this.getSymbol(formula.operator, symbolSet);
 			let operator = OPERATORS[formula.operator];
-			if (symbol instanceof Array)
-				symbol = symbol[0];
-			return "(" + (operator.leftOperand ? this.getTextFromFormula(formula.operands[0], symbolSet) + " " : "") + symbol + (operator.rightOperand ? (operator.leftOperand || /[\w]/.test(symbol) ? " " : "") + this.getTextFromFormula(formula.operands[operator.leftOperand ? 1 : 0], symbolSet) : "") + ")";
+			let parentheses = (operator.precedence <= prevSymbolPrecedence || putAllParentheses) && (operator.leftOperand || operator.rightOperand) && typeof symbol === "string" && prevSymbolPrecedence !== -Infinity;
+			let text = "";
+			if (parentheses)
+				text += "(";
+			if (operator.leftOperand)
+			{
+				text += this.getTextFromFormula(formula.operands[0], symbolSet, putAllParentheses, operator.precedence);
+				text += " ";
+			}
+			text += symbol;
+			if (operator.rightOperand)
+			{
+				if (operator.leftOperand || /[\w]/.test(symbol))
+					text += " ";
+				text += this.getTextFromFormula(formula.operands[operator.leftOperand ? 1 : 0], symbolSet, putAllParentheses, operator.precedence - 0.5);
+			}
+			if (parentheses)
+				text += ")";
+			return text;
+			// return "(" + (operator.leftOperand ? this.getTextFromFormula(formula.operands[0], symbolSet) + " " : "") + symbol + (operator.rightOperand ? (operator.leftOperand || /[\w]/.test(symbol) ? " " : "") + this.getTextFromFormula(formula.operands[operator.leftOperand ? 1 : 0], symbolSet) : "") + ")";
 		}
 		return "<INVALID_FORMULA>";
 	}
-	static getElementFromFormula(formula, symbolSet = SYMBOL_SETS[DEFAULT_SYMBOLS], putAllParentheses = true, prevSymbolPrecedence = -Infinity)
+	static getElementFromFormula(formula, symbolSet = SYMBOL_SETS[DEFAULT_SYMBOLS], putAllParentheses = true, useNonTextSymbols = true, prevSymbolPrecedence = -Infinity)
 	{
 		let elem = document.createElement("div");
 		if (formula.type === "variable")
@@ -273,27 +291,28 @@ export default class BooleanAlgebraFormula
 		}
 		else if (formula.type === "operator")
 		{
-			let symbol = this.getSymbol(formula.operator, symbolSet);
+			let symbol = this.getSymbol(formula.operator, symbolSet, !useNonTextSymbols);
 			let operator = OPERATORS[formula.operator];
-			if (symbol instanceof Array)
-				symbol = symbol[0];
-			let parentheses = (operator.precedence <= prevSymbolPrecedence || putAllParentheses) && (operator.leftOperand || operator.rightOperand) && prevSymbolPrecedence !== -Infinity;
+			let parentheses = (operator.precedence <= prevSymbolPrecedence || putAllParentheses) && (operator.leftOperand || operator.rightOperand) && typeof symbol === "string" && prevSymbolPrecedence !== -Infinity;
 			if (parentheses)
 				elem.appendChild(document.createTextNode("("));
 			if (operator.leftOperand)
 			{
-				elem.appendChild(this.getElementFromFormula(formula.operands[0], symbolSet, putAllParentheses, operator.precedence));
+				elem.appendChild(this.getElementFromFormula(formula.operands[0], symbolSet, putAllParentheses, useNonTextSymbols, operator.precedence));
 				elem.appendChild(document.createTextNode(" "));
 			}
 			let operatorElem = document.createElement("div");
 			operatorElem.classList.add("operator");
-			operatorElem.textContent = symbol;
+			if (typeof symbol === "string")
+				operatorElem.textContent = symbol;
+			else
+				elem.setAttribute("style", symbol.style);
 			elem.appendChild(operatorElem);
 			if (operator.rightOperand)
 			{
-				if (operator.leftOperand || /[\w]/.test(symbol))
+				if (typeof symbol === "string" && (operator.leftOperand || /[\w]/.test(symbol)))
 					elem.appendChild(document.createTextNode(" "));
-				elem.appendChild(this.getElementFromFormula(formula.operands[operator.leftOperand ? 1 : 0], symbolSet, putAllParentheses, operator.precedence - 0.5));
+				elem.appendChild(this.getElementFromFormula(formula.operands[operator.leftOperand ? 1 : 0], symbolSet, putAllParentheses, useNonTextSymbols, operator.precedence - 0.5));
 			}
 			if (parentheses)
 				elem.appendChild(document.createTextNode(")"));
@@ -306,17 +325,29 @@ export default class BooleanAlgebraFormula
 		return elem;
 	}
 
-	static getSymbol(operator, symbolSet)
+	static getSymbol(operator, symbolSet, onlySymbol = true)
 	{
 		let symbol = symbolSet.symbols[operator];
 		if (symbol)
 		{
 			if (symbol instanceof Array)
-				return symbol[0];
-			return symbol;
+			{
+				if (onlySymbol)
+				{
+					let sym = symbol.find(s => typeof s === "string");
+					if (sym)
+						return sym;
+				}
+				else
+					return symbol[0];
+			}
+			else if (typeof symbol === "string" || !onlySymbol)
+			{
+				return symbol;
+			}
 		}
 		if (symbolSet.fallback)
-			return this.getSymbol(operator, SYMBOL_SETS[symbolSet.fallback])
+			return this.getSymbol(operator, SYMBOL_SETS[symbolSet.fallback], onlySymbol)
 		return "<NO_SYMBOL_FOUND>";
 	}
 
@@ -429,6 +460,8 @@ export default class BooleanAlgebraFormula
 					symbolAlias = [symbolAlias];
 				for (let symbol of symbolAlias)
 				{
+					if (typeof symbol !== "string")
+						continue;
 					//let i = text.indexOf(symbol);
 					let i = text.search(new RegExp(`(?:(?<!\\w)|(?!\\w))` + symbol.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + `(?:(?<!\\w)|(?!\\w))`));
 					if (i >= 0)
@@ -465,7 +498,7 @@ export class FormulaEditor
 	 * 
 	 * @param {string} formula 
 	 */
-	constructor(formula = "", showAllParentheses = true, displayNotation = NOTATIONS.BOOLEAN_ALGEBRA, name = "Formula")
+	constructor(formula = "", showAllParentheses = true, useNonTextSymbols = true, displayNotation = NOTATIONS.BOOLEAN_ALGEBRA, name = "Formula")
 	{
 		this.element = document.createElement("div");
 		this.element.classList.add("formula-editor");
@@ -473,6 +506,7 @@ export class FormulaEditor
 		this.formula;
 		this.showAllParentheses = showAllParentheses;
 		this.displayNotation = displayNotation;
+		this.useNonTextSymbols = useNonTextSymbols;
 
 		this.element.appendChild(document.createTextNode(name + ":"));
 
@@ -538,7 +572,8 @@ export class FormulaEditor
 				table.push({ ...inputs, Output: this.formula.get(inputs) });
 			}
 			// interpretation.textContent = this.formula.getFormulaText(select.value);
-			this.interpretation.appendChild(this.formula.getFormulaElement(this.displayNotation, this.showAllParentheses));
+			this.interpretation.appendChild(this.formula.getFormulaElement(this.displayNotation, this.showAllParentheses, this.useNonTextSymbols));
+			// this.inputElement.value = this.formula.getFormulaText(this.displayNotation, this.showAllParentheses);
 			// this.tableContainer.appendChild(this.formula.createTable(this.select.value));
 			this.valid = true;
 		}
@@ -546,6 +581,7 @@ export class FormulaEditor
 		{
 			this.interpretation.textContent = "Invalid formula";
 			this.valid = false;
+			console.log("error", e);
 		}
 		this.fireEvent("updated", { valid: this.valid });
 		//console.log(BooleanAlgebraFormula.calculate(element.value, { A: 1, B: 0, C: 1, D: 0 }));

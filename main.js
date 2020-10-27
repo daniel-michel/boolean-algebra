@@ -27,6 +27,10 @@ let showAllParentheses;
 /**
  * @type {HTMLButtonElement}
  */
+let useNonTextSymbols;
+/**
+ * @type {HTMLButtonElement}
+ */
 let showTruthTable;
 
 window.onload = main;
@@ -50,6 +54,12 @@ function main()
 	showAllParentheses.onclick = e =>
 	{
 		showAllParentheses.classList.toggle("active");
+		updateEditorSettings();
+	};
+	useNonTextSymbols = document.querySelector("#use-non-text-symbols");
+	useNonTextSymbols.onclick = e =>
+	{
+		useNonTextSymbols.classList.toggle("active");
 		updateEditorSettings();
 	};
 	showTruthTable = document.querySelector("#show-truth-table");
@@ -124,6 +134,7 @@ function updateEditorSettings()
 	{
 		editor.displayNotation = notationSelect.value;
 		editor.showAllParentheses = showAllParentheses.classList.contains("active");
+		editor.useNonTextSymbols = useNonTextSymbols.classList.contains("active");
 		editor.update();
 	}
 	ignoreUpdates = false;
@@ -153,7 +164,7 @@ function loadFormulas(formulaStrings)
 		}
 		else
 		{
-			formulas[i] = new FormulaEditor(formulaStrings[i], showAllParentheses.classList.contains("active"), notationSelect.value, `Formula ${i}`);
+			formulas[i] = new FormulaEditor(formulaStrings[i], showAllParentheses.classList.contains("active"), useNonTextSymbols.classList.contains("active"), notationSelect.value, `Formula ${i}`);
 			container.insertBefore(formulas[i].element, addFormula);
 			formulas[i].on("updated", onupdate);
 			formulas[i].on("close", onclose);
