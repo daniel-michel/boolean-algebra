@@ -13,7 +13,7 @@ const OPERATOR_NAMES = {
 	BRACKET_OPEN: "bracket_open",
 	BRACKET_CLOSE: "bracket_close",
 	IMPLICATION: "implication",
-	EQUIVALENCE: "equivalence",
+	EQUALITY: "equality",
 	NOT: "not",
 	AND: "and",
 	OR: "or",
@@ -22,22 +22,22 @@ const OPERATOR_NAMES = {
 	FALSE: "bottom",
 };
 const OPERATORS = {
-	[OPERATOR_NAMES.IMPLICATION]: { precedence: 0, leftOperand: true, rightOperand: true, func: (a, b) => (a ^ 1) | b },
-	[OPERATOR_NAMES.EQUIVALENCE]: { precedence: 0, leftOperand: true, rightOperand: true, func: (a, b) => (a ^ b) ^ 1 },
-	[OPERATOR_NAMES.NOT]: { precedence: 4, rightOperand: true, func: (a) => a ^ 1 },
+	[OPERATOR_NAMES.TRUE]: { precedence: 0, func: () => 1 },
+	[OPERATOR_NAMES.FALSE]: { precedence: 0, func: () => 0 },
+	[OPERATOR_NAMES.NOT]: { precedence: 1, rightOperand: true, func: (a) => a ^ 1 },
+	[OPERATOR_NAMES.XOR]: { precedence: 1.5, leftOperand: true, rightOperand: true, func: (a, b) => a ^ b },
 	[OPERATOR_NAMES.AND]: { precedence: 2, leftOperand: true, rightOperand: true, func: (a, b) => a & b },
-	[OPERATOR_NAMES.OR]: { precedence: 1, leftOperand: true, rightOperand: true, func: (a, b) => a | b },
-	[OPERATOR_NAMES.XOR]: { precedence: 3, leftOperand: true, rightOperand: true, func: (a, b) => a ^ b },
-	[OPERATOR_NAMES.TRUE]: { precedence: Infinity, func: () => 1 },
-	[OPERATOR_NAMES.FALSE]: { precedence: Infinity, func: () => 0 },
+	[OPERATOR_NAMES.OR]: { precedence: 3, leftOperand: true, rightOperand: true, func: (a, b) => a | b },
+	[OPERATOR_NAMES.IMPLICATION]: { precedence: 4, leftOperand: true, rightOperand: true, func: (a, b) => (a ^ 1) | b },
+	[OPERATOR_NAMES.EQUALITY]: { precedence: 5, leftOperand: true, rightOperand: true, func: (a, b) => (a ^ b) ^ 1 },
 };
 const SYMBOL_SETS = {
 	[NOTATIONS.BOOLEAN_ALGEBRA]: {
 		symbols: {
 			[OPERATOR_NAMES.BRACKET_OPEN]: "(",
 			[OPERATOR_NAMES.BRACKET_CLOSE]: ")",
-			[OPERATOR_NAMES.IMPLICATION]: ["⇒", "=>"],
-			[OPERATOR_NAMES.EQUIVALENCE]: ["⇔", "<=>"],
+			[OPERATOR_NAMES.IMPLICATION]: ["⇒", "→", "=>"],
+			[OPERATOR_NAMES.EQUALITY]: ["⇔", "↔", "<=>"],
 			[OPERATOR_NAMES.NOT]: ["¬", "￢", "-"],
 			[OPERATOR_NAMES.AND]: "∧",
 			[OPERATOR_NAMES.OR]: "∨",
@@ -64,7 +64,7 @@ const SYMBOL_SETS = {
 		fallback: NOTATIONS.BOOLEAN_ALGEBRA,
 		symbols: {
 			[OPERATOR_NAMES.IMPLICATION]: "IMPLIES",
-			[OPERATOR_NAMES.EQUIVALENCE]: ["EQUALS", "EQUIVALENCE"],
+			[OPERATOR_NAMES.EQUALITY]: ["EQUALS", "XNOR"],
 			[OPERATOR_NAMES.NOT]: "NOT",
 			[OPERATOR_NAMES.AND]: "AND",
 			[OPERATOR_NAMES.OR]: "OR",
@@ -77,7 +77,7 @@ const SYMBOL_SETS = {
 		fallback: NOTATIONS.BOOLEAN_ALGEBRA,
 		symbols: {
 			[OPERATOR_NAMES.IMPLICATION]: ["\\Rightarrow", "\\to", "\\rightarrow", "\\supset", "\\implies"],
-			[OPERATOR_NAMES.EQUIVALENCE]: ["\\Leftrightarrow", "\\equiv", "\\leftrightarrow", "\\iff"],
+			[OPERATOR_NAMES.EQUALITY]: ["\\Leftrightarrow", "\\equiv", "\\leftrightarrow", "\\iff"],
 			[OPERATOR_NAMES.NOT]: ["\\lnot", "\\neg", "\\sim"],
 			[OPERATOR_NAMES.AND]: ["\\land", "\\wedge", "\\cdot", "\\&"],
 			[OPERATOR_NAMES.OR]: ["\\lor", "\\vee", "\\parallel"],
@@ -90,7 +90,7 @@ const SYMBOL_SETS = {
 		fallback: NOTATIONS.BOOLEAN_ALGEBRA,
 		symbols: {
 			[OPERATOR_NAMES.IMPLICATION]: "<=",
-			[OPERATOR_NAMES.EQUIVALENCE]: "==",
+			[OPERATOR_NAMES.EQUALITY]: "==",
 			[OPERATOR_NAMES.NOT]: ["!", "not"],
 			[OPERATOR_NAMES.AND]: ["&&", "&", "and"],
 			[OPERATOR_NAMES.OR]: ["||", "|", "or"],
@@ -112,7 +112,7 @@ const SYMBOL_SETS = {
 	[NOTATIONS.JAVASCRIPT]: {
 		fallback: NOTATIONS.PROGRMMING,
 		symbols: {
-			[OPERATOR_NAMES.EQUIVALENCE]: "===",
+			[OPERATOR_NAMES.EQUALITY]: "===",
 			[OPERATOR_NAMES.XOR]: "!==",
 		},
 	},
@@ -122,7 +122,7 @@ const SYMBOL_SETS = {
 			[OPERATOR_NAMES.BRACKET_OPEN]: "(",
 			[OPERATOR_NAMES.BRACKET_CLOSE]: ")",
 			[OPERATOR_NAMES.IMPLICATION]: ["&rArr;", "&rarr;", "&sup;", "&#8658;", "&#8594;", "&#8835;"],
-			[OPERATOR_NAMES.EQUIVALENCE]: ["&hArr;", "&equiv;", "&harr;", "&#8660;", "&#8801;", "&#8596;"],
+			[OPERATOR_NAMES.EQUALITY]: ["&hArr;", "&equiv;", "&harr;", "&#8660;", "&#8801;", "&#8596;"],
 			[OPERATOR_NAMES.NOT]: ["&not;", "&tilde;", "&excl;", "&#172;", "&#732;", "&#33;"],
 			[OPERATOR_NAMES.AND]: ["&and;", "&middot;", "&amp;", "&#8743;", "&#183;", "&#38;"],
 			[OPERATOR_NAMES.OR]: ["&or;", "&plus;", "&parallel;", "&#8744;", "&#43;", "&#8741;"],
@@ -250,7 +250,7 @@ export default class BooleanAlgebraFormula
 		throw "Invalid type: " + formula.type;
 	}
 
-	static getTextFromFormula(formula, symbolSet = SYMBOL_SETS[DEFAULT_SYMBOLS], putAllParentheses = true, prevSymbolPrecedence = -Infinity)
+	static getTextFromFormula(formula, symbolSet = SYMBOL_SETS[DEFAULT_SYMBOLS], putAllParentheses = true, prevSymbolPrecedence = Infinity)
 	{
 		if (formula.type === "variable")
 			return formula.name;
@@ -258,7 +258,7 @@ export default class BooleanAlgebraFormula
 		{
 			let symbol = this.getSymbol(formula.operator, symbolSet);
 			let operator = OPERATORS[formula.operator];
-			let parentheses = (operator.precedence <= prevSymbolPrecedence || putAllParentheses) && (operator.leftOperand || operator.rightOperand) && typeof symbol === "string" && prevSymbolPrecedence !== -Infinity;
+			let parentheses = (operator.precedence >= prevSymbolPrecedence || putAllParentheses) && (operator.leftOperand || operator.rightOperand) && typeof symbol === "string" && prevSymbolPrecedence !== -Infinity;
 			let text = "";
 			if (parentheses)
 				text += "(";
@@ -272,7 +272,7 @@ export default class BooleanAlgebraFormula
 			{
 				if (operator.leftOperand || /[\w]/.test(symbol))
 					text += " ";
-				text += this.getTextFromFormula(formula.operands[operator.leftOperand ? 1 : 0], symbolSet, putAllParentheses, operator.precedence - 0.5);
+				text += this.getTextFromFormula(formula.operands[operator.leftOperand ? 1 : 0], symbolSet, putAllParentheses, operator.precedence + 0.1);
 			}
 			if (parentheses)
 				text += ")";
@@ -281,7 +281,7 @@ export default class BooleanAlgebraFormula
 		}
 		return "<INVALID_FORMULA>";
 	}
-	static getElementFromFormula(formula, symbolSet = SYMBOL_SETS[DEFAULT_SYMBOLS], putAllParentheses = true, useNonTextSymbols = true, prevSymbolPrecedence = -Infinity)
+	static getElementFromFormula(formula, symbolSet = SYMBOL_SETS[DEFAULT_SYMBOLS], putAllParentheses = true, useNonTextSymbols = true, prevSymbolPrecedence = Infinity)
 	{
 		let elem = document.createElement("div");
 		if (formula.type === "variable")
@@ -293,7 +293,7 @@ export default class BooleanAlgebraFormula
 		{
 			let symbol = this.getSymbol(formula.operator, symbolSet, !useNonTextSymbols);
 			let operator = OPERATORS[formula.operator];
-			let parentheses = (operator.precedence <= prevSymbolPrecedence || putAllParentheses) && (operator.leftOperand || operator.rightOperand) && typeof symbol === "string" && prevSymbolPrecedence !== -Infinity;
+			let parentheses = (operator.precedence >= prevSymbolPrecedence || putAllParentheses) && (operator.leftOperand || operator.rightOperand) && typeof symbol === "string" && prevSymbolPrecedence !== -Infinity;
 			if (parentheses)
 				elem.appendChild(document.createTextNode("("));
 			if (operator.leftOperand)
@@ -312,7 +312,7 @@ export default class BooleanAlgebraFormula
 			{
 				if (typeof symbol === "string" && (operator.leftOperand || /[\w]/.test(symbol)))
 					elem.appendChild(document.createTextNode(" "));
-				elem.appendChild(this.getElementFromFormula(formula.operands[operator.leftOperand ? 1 : 0], symbolSet, putAllParentheses, useNonTextSymbols, operator.precedence - 0.5));
+				elem.appendChild(this.getElementFromFormula(formula.operands[operator.leftOperand ? 1 : 0], symbolSet, putAllParentheses, useNonTextSymbols, operator.precedence + 0.1));
 			}
 			if (parentheses)
 				elem.appendChild(document.createTextNode(")"));
@@ -436,7 +436,7 @@ export default class BooleanAlgebraFormula
 		{
 			let symbol = symbols[i];
 			let operator = OPERATORS[symbol.type];
-			if (operator && (operator.leftOperand || i === 0) && (operator.rightOperand || i === symbols.length - 1) && (!lowest || operator.precedence < lowest.operator.precedence))
+			if (operator && (operator.leftOperand || i === 0) && (operator.rightOperand || i === symbols.length - 1) && (!lowest || operator.precedence > lowest.operator.precedence))
 				//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this makes sure that operators which only have one operand aren't chosen before operators on the side where they don't have an operand
 				lowest = { index: i, symbol, operator: operator }
 		}
